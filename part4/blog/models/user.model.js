@@ -3,25 +3,25 @@ import { Schema, model } from 'mongoose'
 const userSchema = new Schema({
   username: {
     type: String,
-    maxlength: 3,
+    minlength: 3,
     required: true,
     unique: true
   },
   name: String,
   passwordHash: {
     type: String,
-    maxlength: 3
+    minlength: 3
   },
-  notes: [
+  blogs: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'Note'
+      ref: 'Blog'
     }
   ],
 })
 
 userSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
+  transform: (_document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
@@ -30,5 +30,4 @@ userSchema.set('toJSON', {
 })
 
 const User = model('User', userSchema)
-
 export default User
