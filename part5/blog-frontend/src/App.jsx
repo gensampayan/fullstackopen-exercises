@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
+import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 import loginService from "./services/login"
 
@@ -80,10 +81,37 @@ const App = () => {
         url: ""
       });
     } catch (error) {
-      console.error(error);
-      setError(error);
+      console.error(error)
+      setError(error)
     }
   };
+
+  const handleLike = async (blog) => {
+    try {
+      const updateBlogData = {
+        ...blog,
+        likes: (blog.likes || 0) + 1,
+      }
+
+      const response = await blogService.updateBlog(blog.id, updateBlogData)
+      setBlogs(blogs.map(b => b.id === blog.id ? { ...response, user: blog.user } : b))
+    } catch (error) {
+      console.error(error)
+      setError(error)
+    }
+  }
+
+  const handleRemove = async (blog) => {
+    try {
+      if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+        await blogService.removeBlog(blog.id)
+        setBlogs(blogs.filter(b => b.id !== blog.id))
+      }
+    } catch (error) {
+      console.error(error)
+      setError(error)
+    }
+  }
 
   const loginForm = () => (
     <div>
@@ -93,6 +121,8 @@ const App = () => {
         <label>username</label>
         <input 
           type="text" 
+          data-testid="username"
+          id="username"
           value={username} 
           onChange={(e) => setUsername(e.target.value)} 
         />
@@ -100,6 +130,7 @@ const App = () => {
         <label>password</label>
         <input 
           type="password" 
+          data-testid="password"
           value={password}  
           onChange={(e) => setPassword(e.target.value)} 
         />
@@ -109,28 +140,40 @@ const App = () => {
     </div>
   )
 
+  const blogDetail = () => {
+    const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes);
 
+    return (
+      <div>
+        <h2>blogs</h2>
+        <p>{success}</p>
+        
+        {sortedBlogs.map((blog, index) => (
+          <Blog 
+            key={index}  
+            blog={blog} 
+            onLike={() => handleLike(blog)} 
+            onRemove={() => handleRemove(blog)}
+            data-testid="blogs"
+          />
+        ))}
 
-  const blogDetail = () => (
-    <div>
-    <h2>blogs</h2>
-    <p>{success}</p>
-    {blogs.map(blog =>
-      <Blog 
-        key={blog._id} 
-        blog={blog} 
-      />
-    )}
-    <h2>Create new</h2>
-    <BlogForm
-      titleData={formData.title}
-      authorData={formData.author}
-      urlData={formData.url}
-      inChange={handleFormData}
-      inSubmit={handleFormSubmit}
-    />
-  </div>
-  )
+        <h2>Create new</h2>
+        <Togglable
+          buttonHideLabel="New blog"
+          buttonShowLabel="Cancel"
+        >
+          <BlogForm
+            titleData={formData.title}
+            authorData={formData.author}
+            urlData={formData.url}
+            inChange={handleFormData}
+            inSubmit={handleFormSubmit}
+          />
+        </Togglable>
+      </div>
+    )
+  }
 
   return (
     <div>

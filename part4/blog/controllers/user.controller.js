@@ -47,7 +47,7 @@ userRouter.get('/:id', async (request, response) => {
 
     response.json(user);
   } catch (error) {
-    console.error(error); // Log errors for debugging
+    console.error(error); 
     response.status(500).send({ error: 'Failed to fetch user' });
   }
 });
